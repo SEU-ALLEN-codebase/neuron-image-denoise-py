@@ -10,22 +10,10 @@ from libcpp.vector cimport vector
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef np.ndarray[np.uint16_t, ndim=3] adaptive_denoise(np.ndarray[np.uint16_t, ndim=3] img,
-                                                       ada_interval=(2, 3, 3), flare_interval=(2, 8, 8),
-                                                       int ada_sampling=3, int flare_sampling=8, float flare_weight=.02,
-                                                       float atten_depth=4, bint flare_x=True, bint flare_y=True):
-    """
-    
-    :param img: 3D neuron fluorescent image array, 16bit.
-    :param ada_interval: stride for adaptive threshold.
-    :param flare_interval: stride for removing flare effect.
-    :param ada_sampling: number of steps for adaptive threshold.
-    :param flare_sampling: number of steps for removing flare effect.
-    :param flare_weight: the weight of flare reduction.
-    :param atten_depth: the unit attenuation distance of the flare.
-    :param flare_x: whether calculate flare along x, when both do, take bigger.
-    :param flare_y: whether calculate flare along y, when both do, take bigger.
-    :return: denoised 3D image array, 16bit.
-    """
+                                                       tuple[int] ada_interval, tuple[int] flare_interval,
+                                                       int ada_sampling, int flare_sampling, float flare_weight,
+                                                       float atten_depth, bint flare_x, bint flare_y):
+
     cdef:
         int fix, fiy, fiz, aix, aiy, aiz
         long long x, y, z, i
