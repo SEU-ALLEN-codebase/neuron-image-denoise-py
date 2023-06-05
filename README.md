@@ -9,17 +9,24 @@ $ pip install neuron-image-denoise
 # User Guide
 
 ```python
-import neuron_image_denoise as nid
+from neuron_image_denoise.filter import *
 
 img: numpy.ndarray # 3D numpy array, 16bit
 
-out = nid.adaptive_denoise(img, ada_interval=(2, 3, 3), flare_interval=(2, 8, 8),
-                           ada_sampling=3, flare_sampling=8, flare_weight=.02,
-                           atten_depth=4, flare_x=True, flare_y=True)
+params = {
+    'ada_interval': (2, 3, 3), 
+    'flare_interval': (2, 8, 8),
+    'ada_sampling': 3, 
+    'flare_sampling': 8, 
+    'flare_weight': .02,
+    'atten_depth': 4, 
+    'flare_x':True, 
+    'flare_y': True
+}
 
-out = nid.adaptive_denoise_16to8(img, ada_interval=(2, 3, 3), flare_interval=(2, 8, 8),
-                           ada_sampling=3, flare_sampling=8, flare_weight=.02,
-                           atten_depth=4, flare_x=True, flare_y=True)   # 16bit to 8bit
+out = adaptive_denoise(img, **params)
+
+out = adaptive_denoise_16to8(img, **params)   # 16bit to 8bit
 ```
 
 ## Algorithm Explanation
