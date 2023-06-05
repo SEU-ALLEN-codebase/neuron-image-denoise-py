@@ -10,7 +10,7 @@ from libcpp.vector cimport vector
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef np.ndarray[np.uint16_t, ndim=3] adaptive_denoise(np.ndarray[np.uint16_t, ndim=3] img,
-                                                       tuple[int] ada_interval, tuple[int] flare_interval,
+                                                       tuple ada_interval, tuple flare_interval,
                                                        int ada_sampling, int flare_sampling, float flare_weight,
                                                        float atten_depth, bint flare_x, bint flare_y):
 
@@ -24,7 +24,7 @@ cpdef np.ndarray[np.uint16_t, ndim=3] adaptive_denoise(np.ndarray[np.uint16_t, n
     cdef:
         vector[float] w
     for i in range(flare_sampling):
-        w.push_back(1 / (i * fiz / atten_depth) ** 3)
+        w.push_back(1 / ((i * fiz / atten_depth) ** 2 + 1))
     cdef float s = sum(w)
     for i in range(flare_sampling):
         w[i] *= flare_weight / s
@@ -83,5 +83,4 @@ cpdef np.ndarray[np.uint16_t, ndim=3] adaptive_denoise(np.ndarray[np.uint16_t, n
                                 pass
                             fy += w[i] * img[z + sz, y, x]
                 out[z, y, x] = <np.uint16_t>max(img[z, y, x] - ada_sum / ada_count - max(fx, fy), 0)
-
     return out

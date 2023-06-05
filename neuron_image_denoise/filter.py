@@ -18,8 +18,8 @@ def adaptive_denoise(img: np.ndarray, ada_interval=(2, 3, 3), flare_interval=(2,
     :param flare_y: whether calculate flare along y, when both do, take bigger.
     :return: denoised 3D image array, 16bit.
     """
-    _filter.adaptive_denoise(img, ada_interval, flare_interval, ada_sampling, flare_sampling, flare_weight, atten_depth,
-                             flare_x, flare_y)
+    return _filter.adaptive_denoise(img, ada_interval, flare_interval, ada_sampling, flare_sampling, flare_weight, atten_depth,
+                                    flare_x, flare_y)
 
 
 def adaptive_denoise_16to8(img: np.ndarray, lower: int | float = 0, upper: int | float = 255, **kwargs):
@@ -41,4 +41,4 @@ def adaptive_denoise_16to8(img: np.ndarray, lower: int | float = 0, upper: int |
         lower = np.quantile(img, lower)
     if type(upper) is float:
         upper = np.quantile(img, upper)
-    return ((img.clip(lower, upper) - lower) / (upper - lower)).astype(np.uint8)
+    return ((img.clip(lower, upper) - lower) / (upper - lower) * 255).astype(np.uint8)
