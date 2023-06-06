@@ -45,7 +45,7 @@ def adaptive_denoise_16to8(img: np.ndarray, lower: int | float = 0, upper: int |
     return ((img.clip(lower, upper) - lower) / (upper - lower) * 255).astype(np.uint8)
 
 
-def gauss_attenuation_filter(img: np.ndarray, sigma=32, attenuation=.1, truncate=2.):
+def gauss_attenuation_filter(img: np.ndarray, sigma=32, attenuation=.1, truncate=2., warmup=32):
     """
     Fast and stable flare cancelling and overall denoising.
 
@@ -53,11 +53,15 @@ def gauss_attenuation_filter(img: np.ndarray, sigma=32, attenuation=.1, truncate
     :param sigma: gaussian sigma, scalar or a tuple of 2 scalar.
     :param attenuation: cancel weight of each z slice, the bigger the more removal.
     :param truncate: this many times of sigma will be truncated to speed up gaussian.
+    :param warmup: the times that the gaussian is repeated on the init slice to warm up the filter.
     :return: image with flare removed
     """
 
     gpool = np.zeros([img.shape[1], img.shape[2]], dtype=float)
     out = np.zeros_like(img)
+    for i in range(warmup):
+        out[-1] = (img[-1] - gpool * attenuation).clip(0).astype(np.uint16)
+        gpool = gaussian(gpool + out[-1], sigma, preserve_range=True, truncate=truncate)
     for i in range(img.shape[0] - 1, -1, -1):
         out[i] = (img[i] - gpool * attenuation).clip(0).astype(np.uint16)
         gpool = gaussian(gpool + out[i], sigma, preserve_range=True, truncate=truncate)
