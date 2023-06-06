@@ -27,6 +27,8 @@ params = {
 out = adaptive_denoise(img, **params)
 
 out = adaptive_denoise_16to8(img, **params)   # 16bit to 8bit
+
+out = gauss_attenuation_filter(img, 32, .1)
 ```
 
 ## Algorithm Explanation

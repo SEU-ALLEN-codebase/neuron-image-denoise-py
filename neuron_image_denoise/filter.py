@@ -1,5 +1,6 @@
 import numpy as np
 from . import _filter
+from skimage.filters import gaussian
 
 
 def adaptive_denoise(img: np.ndarray, ada_interval=(2, 3, 3), flare_interval=(2, 8, 8),
@@ -42,3 +43,22 @@ def adaptive_denoise_16to8(img: np.ndarray, lower: int | float = 0, upper: int |
     if type(upper) is float:
         upper = np.quantile(img, upper)
     return ((img.clip(lower, upper) - lower) / (upper - lower) * 255).astype(np.uint8)
+
+
+def gauss_attenuation_filter(img: np.ndarray, sigma=32, attenuation=.1, truncate=2.):
+    """
+    Fast and stable flare cancelling and overall denoising.
+
+    :param img: 3D image array.
+    :param sigma: gaussian sigma, scalar or a tuple of 2 scalar.
+    :param attenuation: cancel weight of each z slice, the bigger the more removal.
+    :param truncate: this many times of sigma will be truncated to speed up gaussian.
+    :return: image with flare removed
+    """
+
+    gpool = np.zeros([img.shape[1], img.shape[2]], dtype=float)
+    out = np.zeros_like(img)
+    for i in range(img.shape[0] - 1, -1, -1):
+        out[i] = (img[i] - gpool * attenuation).clip(0).astype(np.uint16)
+        gpool = gaussian(gpool + out[i], sigma, preserve_range=True, truncate=truncate)
+    return out
