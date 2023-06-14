@@ -1,6 +1,8 @@
 import numpy as np
 from . import _filter
 from skimage.filters import gaussian
+from skimage.transform import rescale, downscale_local_mean
+import functools
 
 
 def adaptive_denoise(img: np.ndarray, ada_interval=(2, 3, 3), flare_interval=(2, 8, 8),
@@ -65,4 +67,29 @@ def gauss_attenuation_filter(img: np.ndarray, sigma=32, attenuation=.1, truncate
     for i in range(img.shape[0] - 1, -1, -1):
         out[i] = (img[i] - gpool * attenuation).clip(0).astype(np.uint16)
         gpool = gaussian(gpool + out[i], sigma, preserve_range=True, truncate=truncate)
+    return out
+
+
+def adaptive_sectional_feedforward_filter(img: np.ndarray, sigma=10., truncate=3., scaling=1, suppression=.8):
+    """
+    cancel flare and background noise. More adaptive canceling, and its effect can be tuned.
+
+    :param img: 3D image array.
+    :param sigma: gaussian sigma, scalar or a tuple of 2 scalar.
+    :param truncate: this many times of sigma will be truncated to speed up gaussian.
+    :param scaling: downsampling times to speed up.
+    :param suppression: 0-1, suppress the canceling effect.
+    :return: processed image
+    """
+    diffuse = functools.partial(gaussian, sigma=sigma / scaling, preserve_range=True, truncate=truncate)
+    downscale = functools.partial(downscale_local_mean, factors=scaling)
+    upscale = functools.partial(rescale, scale=scaling)
+
+    out = np.zeros_like(img)
+    gpool = diffuse(downscale(img[-1]))
+    for i in range(1, img.shape[0]):
+        i = img.shape[0] - i - 1
+        m = img[i].mean() / gpool.mean() * suppression
+        out[i] = (img[i] - upscale(m * gpool)).clip(0)
+        gpool = diffuse(downscale(out[i]) + gpool)
     return out

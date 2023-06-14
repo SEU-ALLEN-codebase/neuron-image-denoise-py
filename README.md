@@ -11,24 +11,24 @@ $ pip install neuron-image-denoise
 ```python
 from neuron_image_denoise.filter import *
 
-img: numpy.ndarray # 3D numpy array, 16bit
+img: numpy.ndarray  # 3D numpy array, 16bit
 
 params = {
-    'ada_interval': (2, 3, 3), 
+    'ada_interval': (2, 3, 3),
     'flare_interval': (2, 8, 8),
-    'ada_sampling': 3, 
-    'flare_sampling': 8, 
+    'ada_sampling': 3,
+    'flare_sampling': 8,
     'flare_weight': .02,
-    'atten_depth': 4, 
-    'flare_x':True, 
+    'atten_depth': 4,
+    'flare_x': True,
     'flare_y': True
 }
 
 out = adaptive_denoise(img, **params)
 
-out = adaptive_denoise_16to8(img, **params)   # 16bit to 8bit
+out = adaptive_denoise_16to8(img, **params)  # 16bit to 8bit
 
-out = gauss_attenuation_filter(img, 32, .1)
+out = adaptive_sectional_feedforward_filter(img, sigma=12., truncate=2., scaling=1, suppression=.8)
 ```
 
 ## Algorithm Explanation
